@@ -2,13 +2,16 @@ package com.example.customerrecordsidentification;
 
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,19 +26,29 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 
 public class Register extends AppCompatActivity {
 
     TextInputEditText editTextName, editTextPhoneNumber, editTextEmail, editTextPassword;
-    Button buttonReg;
+    Button buttonReg, selectImageBtn;
+    ImageView imageView;
     ProgressBar progressBar;
     TextView textView;
     FirebaseAuth mAuth;
     FirebaseFirestore db;
+
+    Uri imageUri;
+    StorageReference storageReference;
 
 
     @Override
@@ -64,6 +77,16 @@ public class Register extends AppCompatActivity {
         buttonReg = findViewById(R.id.btn_register);
         progressBar = findViewById(R.id.progressBar);
         textView = findViewById(R.id.goto_login);
+        selectImageBtn = findViewById(R.id.selectImageBtn);
+        imageView = findViewById(R.id.image);
+
+
+        selectImageBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectImage();
+            }
+        });
 
 //        onClick listener when user click on already have an account? login button
         textView.setOnClickListener(new View.OnClickListener() {
@@ -118,6 +141,8 @@ public class Register extends AppCompatActivity {
                                     // Sign in success, update UI with the signed-in user's information
                                     Toast.makeText(Register.this, "Account Created Successfully.", Toast.LENGTH_SHORT).show();
 
+                                    //upload user image to firebase cloud storage
+                                    uploadImage();
                                     //add user data in firestore database after successfully registration
                                     db.collection("users")
                                             .add(user)
@@ -147,5 +172,44 @@ public class Register extends AppCompatActivity {
                         });
             }
         });
+    }
+
+    private void uploadImage() {
+
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.CANADA);
+        Date now = new Date();
+        String fileName = formatter.format(now);
+        storageReference = FirebaseStorage.getInstance().getReference("images/"+fileName);
+
+        storageReference.putFile(imageUri)
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        imageView.setImageURI(null);
+                        Toast.makeText(Register.this,"Successfully Uploaded",Toast.LENGTH_SHORT).show();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(Register.this,"Failed to Upload",Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void selectImage() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(intent, 100);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 100 && data != null && data.getData() != null) {
+            imageUri = data.getData();
+            imageView.setImageURI(imageUri);
+        }
     }
 }
