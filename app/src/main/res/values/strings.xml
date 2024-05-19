@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Customer Records Identification</string>
+    <string name="login">Login</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="register">Register</string>
+    <string name="name">Name</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="don_t_have_account">Don\'t have account?</string>
+    <string name="already_have_an_account">Already have an account?</string>
+    <string name="logout">Logout</string>
+    <string name="enter_phone_number_to_find_customer_details">Enter Phone Number to find Customer details</string>
+    <string name="search">Search</string>
+    <string name="search_user_details">Search User Details 👉</string>
+    <string name="select_image">Select Image</string>
+</resources>
