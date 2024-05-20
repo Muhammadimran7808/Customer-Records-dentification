@@ -19,7 +19,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.Map;
@@ -30,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     FirebaseUser user;
     FirebaseFirestore db;
     Button logoutBtn, gotoSearch;
-    TextView textView;
+    TextView textView, welcome;
 
     ImageView imageView;
 
@@ -46,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
         gotoSearch = findViewById(R.id.goto_search);
         user = auth.getCurrentUser();
         imageView = findViewById(R.id.imageView);
+        welcome = findViewById(R.id.welcome);
 
         if (user == null) {
             // User is not logged in, redirect to login activity
@@ -75,10 +75,13 @@ public class MainActivity extends AppCompatActivity {
                                         + "Email: " + email + "\n"
                                         + "Phone Number: " + phoneNumber;
                                 textView.setText(displayText);
+                                String welcomeNote = "Hello, " + name + "welcome back!";
+                                welcome.setText(welcomeNote);
 
                                 // Load the image into the ImageView using Glide
                                 Glide.with(MainActivity.this)
                                         .load(imageUrl)
+                                        .circleCrop()
                                         .into(imageView);
                             } else {
                                 Toast.makeText(MainActivity.this, "User information not found.", Toast.LENGTH_SHORT).show();

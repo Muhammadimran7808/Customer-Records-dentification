@@ -13,4 +13,6 @@
     <string name="search">Search</string>
     <string name="search_user_details">Search User Details 👉</string>
     <string name="select_image">Select Image</string>
+    <string name="logout_button">Logout Button</string>
+    <string name="user_image">User image</string>
 </resources>

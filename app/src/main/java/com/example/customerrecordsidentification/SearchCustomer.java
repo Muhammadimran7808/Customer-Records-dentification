@@ -9,10 +9,12 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -20,12 +22,14 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class SearchCustomer extends AppCompatActivity {
 
     EditText editTextSearch;
     Button searchBtn;
     TextView textView;
+    ImageView imageView;
     ProgressBar progressBar;
     FirebaseFirestore db;
 
@@ -34,12 +38,13 @@ public class SearchCustomer extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_customer);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         db = FirebaseFirestore.getInstance();
         editTextSearch = findViewById(R.id.searchInput);
         searchBtn = findViewById(R.id.searchBtn);
         textView = findViewById(R.id.searchResult);
         progressBar = findViewById(R.id.progressBar);
+        imageView = findViewById(R.id.imageView);
 
         searchBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -71,12 +76,16 @@ public class SearchCustomer extends AppCompatActivity {
                                             String name = String.valueOf(data.get("name"));
                                             String email = String.valueOf(data.get("email"));
                                             String phoneNumber = String.valueOf(data.get("phone"));
+                                            String imageUrl = String.valueOf(data.get("imageUrl"));
 
                                             // Display the extracted data on the screen
                                             String displayText = "Name: " + name + "\n"
                                                     + "Email: " + email + "\n"
                                                     + "Phone Number: " + phoneNumber;
                                             textView.setText(displayText);
+                                            Glide.with(SearchCustomer.this)
+                                                    .load(imageUrl)
+                                                    .into(imageView);
                                         }
                                     } else {
                                         Toast.makeText(SearchCustomer.this, "Something went wrong while getting user information.", Toast.LENGTH_SHORT).show();
