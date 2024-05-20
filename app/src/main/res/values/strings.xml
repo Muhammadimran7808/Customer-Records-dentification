@@ -15,4 +15,7 @@
     <string name="select_image">Select Image</string>
     <string name="logout_button">Logout Button</string>
     <string name="user_image">User image</string>
+    <string name="welcome_to_app">Welcome to App</string>
+    <string name="logo">logo</string>
+    <string name="customer_records_identification">Customer Records Identification</string>
 </resources>

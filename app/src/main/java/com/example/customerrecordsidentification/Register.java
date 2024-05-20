@@ -53,18 +53,6 @@ public class Register extends AppCompatActivity {
 
 
     @Override
-    public void onStart() {
-        super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-            startActivity(intent);
-            finish();
-        }
-    }
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
@@ -178,44 +166,49 @@ public class Register extends AppCompatActivity {
     }
 
     private void uploadImage() {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.CANADA);
-        Date now = new Date();
-        String fileName = formatter.format(now);
-        storageReference = FirebaseStorage.getInstance().getReference("images/" + fileName);
+        try {
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.CANADA);
+            Date now = new Date();
+            String fileName = formatter.format(now);
+            storageReference = FirebaseStorage.getInstance().getReference("images/" + fileName);
 
-        storageReference.putFile(imageUri)
-                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                            @Override
-                            public void onSuccess(Uri uri) {
-                                String imageUrl = uri.toString();
-                                // Save image URL in Firestore under the user's document
-                                FirebaseFirestore.getInstance().collection("users")
-                                        .document(Objects.requireNonNull(mAuth.getCurrentUser()).getUid())
-                                        .update("imageUrl", imageUrl)
-                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                            @Override
-                                            public void onSuccess(Void aVoid) {
-                                                imageView.setImageURI(null);
-                                                Toast.makeText(Register.this, "Successfully Uploaded", Toast.LENGTH_SHORT).show();
-                                            }
-                                        }).addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-                                                Toast.makeText(Register.this, "Failed to save image URL", Toast.LENGTH_SHORT).show();
-                                            }
-                                        });
-                            }
-                        });
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(Register.this, "Failed to Upload", Toast.LENGTH_SHORT).show();
-                    }
-                });
+            storageReference.putFile(imageUri)
+                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                @Override
+                                public void onSuccess(Uri uri) {
+                                    String imageUrl = uri.toString();
+                                    // Save image URL in Firestore under the user's document
+                                    FirebaseFirestore.getInstance().collection("users")
+                                            .document(Objects.requireNonNull(mAuth.getCurrentUser()).getUid())
+                                            .update("imageUrl", imageUrl)
+                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void aVoid) {
+                                                    imageView.setImageURI(null);
+                                                    Toast.makeText(Register.this, "Successfully Uploaded", Toast.LENGTH_SHORT).show();
+                                                }
+                                            }).addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    Toast.makeText(Register.this, "Failed to save image URL", Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
+                                }
+                            });
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(Register.this, "Failed to Upload", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+        } catch (Exception e) {
+            Toast.makeText(Register.this, "An error occurred: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
 
