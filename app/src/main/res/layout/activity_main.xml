@@ -7,6 +7,11 @@
     android:orientation="vertical"
     android:gravity="center"
     tools:context=".MainActivity">
+<ImageView
+    android:id="@+id/imageView"
+    android:layout_width="150dp"
+    android:layout_height="150dp"
+    android:scaleType="centerCrop"/>
 
     <TextView
         android:id="@+id/user_details"

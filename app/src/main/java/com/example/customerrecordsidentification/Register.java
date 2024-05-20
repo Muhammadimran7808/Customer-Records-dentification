@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 
 public class Register extends AppCompatActivity {
@@ -126,11 +127,6 @@ public class Register extends AppCompatActivity {
                     return;
                 }
 
-                Map<String, Object> user = new HashMap<>();
-                user.put("name", name);
-                user.put("phone", phoneNumber);
-                user.put("email", email);
-
 
                 mAuth.createUserWithEmailAndPassword(email, password)
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -140,22 +136,29 @@ public class Register extends AppCompatActivity {
                                 if (task.isSuccessful()) {
                                     // Sign in success, update UI with the signed-in user's information
                                     Toast.makeText(Register.this, "Account Created Successfully.", Toast.LENGTH_SHORT).show();
+                                    // Get the current user's UID
+                                    String userId = Objects.requireNonNull(mAuth.getCurrentUser()).getUid();
 
-                                    //upload user image to firebase cloud storage
-                                    uploadImage();
-                                    //add user data in firestore database after successfully registration
+                                    // Prepare user data
+                                    Map<String, Object> user = new HashMap<>();
+                                    user.put("name", name);
+                                    user.put("phone", phoneNumber);
+                                    user.put("email", email);
+
                                     db.collection("users")
-                                            .add(user)
-                                            .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                            .document(userId)
+                                            .set(user)
+                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                 @Override
-                                                public void onSuccess(DocumentReference documentReference) {
-
+                                                public void onSuccess(Void aVoid) {
+                                                    // Upload user image to Firebase Storage
+                                                    uploadImage();
                                                 }
                                             })
                                             .addOnFailureListener(new OnFailureListener() {
                                                 @Override
                                                 public void onFailure(@NonNull Exception e) {
-                                                    Toast.makeText(Register.this, "Some thing went wrong.", Toast.LENGTH_SHORT).show();
+                                                    Toast.makeText(Register.this, "Failed to save user data", Toast.LENGTH_SHORT).show();
                                                 }
                                             });
 
@@ -175,26 +178,45 @@ public class Register extends AppCompatActivity {
     }
 
     private void uploadImage() {
-
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.CANADA);
-        Date now = new Date();
-        String fileName = formatter.format(now);
-        storageReference = FirebaseStorage.getInstance().getReference("images/"+fileName);
+        String fileName = String.valueOf(editTextPhoneNumber.getText());
+        storageReference = FirebaseStorage.getInstance().getReference("images/" + fileName);
 
         storageReference.putFile(imageUri)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        imageView.setImageURI(null);
-                        Toast.makeText(Register.this,"Successfully Uploaded",Toast.LENGTH_SHORT).show();
+                        storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            @Override
+                            public void onSuccess(Uri uri) {
+                                String imageUrl = uri.toString();
+                                // Save image URL in Firestore under the user's document
+                                FirebaseFirestore.getInstance().collection("users")
+                                        .document(Objects.requireNonNull(mAuth.getCurrentUser()).getUid())
+                                        .update("imageUrl", imageUrl)
+                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+                                                imageView.setImageURI(null);
+                                                Toast.makeText(Register.this, "Successfully Uploaded", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }).addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                Toast.makeText(Register.this, "Failed to save image URL", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                            }
+                        });
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(Register.this,"Failed to Upload",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(Register.this, "Failed to Upload", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
+
+
 
     private void selectImage() {
         Intent intent = new Intent();
